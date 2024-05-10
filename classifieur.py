@@ -4,7 +4,27 @@ import re
 import pickle
 
 
+def mise_a_jour_classifieur(classifieur, nouveau_message, est_spam, dictionnaire):
+   
+    vecteur = lireMail(nouveau_message, dictionnaire)
+    
+    # Mettre à jour les paramètres pour spam
+    if est_spam:
+        classifieur['mspam'] += 1
+        for i, val in enumerate(vecteur):
+            if val:
+                classifieur['nspam'][i] += 1
+    
+    
+    epsilon = 1  # Valeur de lissage
+    for i in range(len(dictionnaire)):
+        classifieur['bspam'][i] = (classifieur['nspam'][i] + epsilon) / (classifieur['mspam'] + 2 * epsilon)
 
+    # Enregistrer le classifieur mis à jour
+    with open('classifieur.pkl', 'wb') as f:
+        pickle.dump(classifieur, f)
+
+        
 def lireMail(fichier, dictionnaire):
     with open(fichier, "r", encoding="ascii", errors="surrogateescape") as f:
         contenu = f.read().lower()
